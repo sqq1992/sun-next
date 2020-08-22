@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=dev nodemon server.js",
+    "testDev": "cross-env NODE_ENV=dev nodemon testServer.js",
     "build": "next build",
     "start": "next start"
   },

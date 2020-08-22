@@ -1,18 +1,22 @@
-
+const next = require('next')
 const http = require('http');
 const koaApp = require('./server/app');
-const {nextApp} = require('./server/env');
-var debug = require('debug')('demo:server');
+const {isDev} = require('./server/env');
+const debug = require('debug')('demo:server');
+const nextApp = next({ dev:isDev })
+const nextHandle = nextApp.getRequestHandler()
 
 const port = parseInt(process.env.PORT, 10) || 3000
 
 nextApp.prepare().then(() => {
-    const server = http.createServer(koaApp.callback());
+
+    const instanceKoaApp = koaApp(nextHandle);
+    const server = http.createServer(instanceKoaApp.callback());
+
 
     server.listen(port);
     server.on('error', onError);
     server.on('listening', onListening);
-
     /**
      * Event listener for HTTP server "error" event.
      */

@@ -1,9 +1,9 @@
 const Koa = require('koa')
-const app = new Koa()
 const json = require('koa-json')
 const onerror = require('koa-onerror')
 const bodyparser = require('koa-bodyparser')
 const logger = require('koa-logger');
+const Router = require('koa-router')
 const session = require('koa-generic-session');
 const redisStore = require('koa-redis');
 
@@ -11,16 +11,20 @@ const indexRouter = require('./router/indexRouter');
 const endRouter = require('./router/endRouter');
 
 
-// error handler
-onerror(app)
+module.exports = function (nextHandle) {
+  const app = new Koa();
+  const router = new Router()
 
-// middlewares
-app.use(bodyparser({
-  httpOnly: true,
-  enableTypes:['json', 'form', 'text']
-}))
-app.use(json())
-app.use(logger())
+  // error handler
+  onerror(app)
+
+  // middlewares
+  app.use(bodyparser({
+    httpOnly: true,
+    enableTypes:['json', 'form', 'text']
+  }))
+  app.use(json())
+  app.use(logger())
 
 // //todo 静态文件
 // app.use(koaStatic(__dirname + '/public'))
@@ -28,12 +32,12 @@ app.use(logger())
 
 
 // logger
-app.use(async (ctx, next) => {
-  const start = new Date()
-  await next()
-  const ms = new Date() - start
-  console.log(`${ctx.method} ${ctx.url} - ${ms}ms`)
-})
+  app.use(async (ctx, next) => {
+    const start = new Date()
+    await next()
+    const ms = new Date() - start
+    console.log(`${ctx.method} ${ctx.url} - ${ms}ms`)
+  })
 
 // //todo session 配置
 // app.keys = ['SUN#1992'];
@@ -51,14 +55,17 @@ app.use(async (ctx, next) => {
 // }));
 
 
-//路由
-app.use(indexRouter.routes(), indexRouter.allowedMethods());
-app.use(endRouter.routes(), endRouter.allowedMethods());
+  //路由
+  indexRouter(router);
+  endRouter(router, nextHandle);
+  app.use(router.routes(), router.allowedMethods());
 
 
-// error-handling
-app.on('error', (err, ctx) => {
-  console.error('server error', err, ctx)
-});
+  // error-handling
+  app.on('error', (err, ctx) => {
+    console.error('server error', err, ctx)
+  });
 
-module.exports = app
+
+  return app;
+};
