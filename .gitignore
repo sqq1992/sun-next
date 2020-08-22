@@ -1,0 +1,9 @@
+.idea/
+.tea/
+*.iml
+*.log
+logs/
+*.class
+target/
+node_modules/
+/.next/
